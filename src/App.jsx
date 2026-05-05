@@ -16,6 +16,12 @@ function App() {
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [bookingSpecialty, setBookingSpecialty] = useState(null);
   const [user, setUser] = useState(null);
+  const [view, setView] = useState('landing'); // 'landing' or 'portal'
+  const [appointments, setAppointments] = useState([
+    { id: 1, doctor: 'Dr. Sarah Jenkins', specialty: 'Cardiology', date: '2024-05-15', time: '10:00 AM', status: 'Upcoming' },
+    { id: 2, doctor: 'Dr. Michael Chen', specialty: 'Neurology', date: '2024-04-10', time: '02:30 PM', status: 'Completed' },
+    { id: 3, doctor: 'Dr. Emily Carter', specialty: 'Dermatology', date: '2024-05-20', time: '11:15 AM', status: 'Upcoming' }
+  ]);
 
   const handleBookClick = (specialty = null) => {
     setBookingSpecialty(specialty);
@@ -26,24 +32,57 @@ function App() {
     }
   };
 
+  const handleBookingSuccess = (newApp) => {
+    const appointment = {
+      id: Date.now(),
+      doctor: newApp.doctor?.name || 'Dr. Specialist',
+      specialty: newApp.specialty,
+      date: newApp.date,
+      time: newApp.time,
+      status: 'Upcoming'
+    };
+    setAppointments(prev => [appointment, ...prev]);
+  };
+
   const handleAuthSuccess = (userData) => {
     setUser(userData);
     setIsAuthOpen(false);
-    setIsBookingOpen(true);
+    setView('portal');
+  };
+
+  const handleLogout = () => {
+    setUser(null);
+    setView('landing');
   };
 
   return (
     <div className="min-h-screen font-sans text-text-gray bg-white selection:bg-teal selection:text-white">
-      <Navbar onBookClick={() => handleBookClick()} />
+      <Navbar 
+        user={user} 
+        onAuthClick={() => user ? setView('portal') : setIsAuthOpen(true)}
+        onLogout={handleLogout}
+        onBookClick={() => handleBookClick()}
+        view={view}
+        setView={setView}
+      />
       
       <main>
-        <Hero onBookClick={() => handleBookClick()} />
-        <Departments onBookClick={handleBookClick} />
-        <FindDoctor onBookClick={() => handleBookClick()} />
-        <WhyChooseUs />
-        <PatientPortal />
-        <Testimonials />
-        <Contact />
+        {view === 'landing' ? (
+          <>
+            <Hero onBookClick={() => handleBookClick()} />
+            <Departments onBookClick={handleBookClick} />
+            <FindDoctor onBookClick={() => handleBookClick()} />
+            <WhyChooseUs />
+            <Testimonials />
+            <Contact />
+          </>
+        ) : (
+          <PatientPortal 
+            user={user} 
+            appointments={appointments}
+            onBookClick={() => handleBookClick()} 
+          />
+        )}
       </main>
 
       <Footer />
@@ -60,6 +99,7 @@ function App() {
         onClose={() => { setIsBookingOpen(false); setBookingSpecialty(null); }} 
         initialSpecialty={bookingSpecialty}
         user={user}
+        onSuccess={handleBookingSuccess}
       />
     </div>
   );

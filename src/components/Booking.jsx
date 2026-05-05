@@ -31,10 +31,12 @@ const timeGroups = {
   'Evening': ['06:00 PM', '06:30 PM', '07:00 PM']
 };
 
-const Booking = ({ isOpen, onClose, initialSpecialty, user }) => {
+const Booking = ({ isOpen, onClose, initialSpecialty, user, onSuccess }) => {
   const [step, setStep] = useState(1);
   const [direction, setDirection] = useState('forward');
   const [formData, setFormData] = useState({
+    fullName: user?.fullName || '',
+    email: user?.email || '',
     specialty: initialSpecialty || '',
     doctor: null,
     date: '',
@@ -49,7 +51,14 @@ const Booking = ({ isOpen, onClose, initialSpecialty, user }) => {
 
   useEffect(() => {
     if (initialSpecialty) setFormData(prev => ({ ...prev, specialty: initialSpecialty }));
-  }, [initialSpecialty]);
+    if (user) {
+      setFormData(prev => ({ 
+        ...prev, 
+        fullName: prev.fullName || user.fullName || '',
+        email: prev.email || user.email || ''
+      }));
+    }
+  }, [initialSpecialty, user]);
 
   if (!isOpen) return null;
 
@@ -59,11 +68,15 @@ const Booking = ({ isOpen, onClose, initialSpecialty, user }) => {
     if (step === 2 && !formData.doctor) return;
     if (step === 3 && (!formData.date || !formData.time)) return;
     if (step === 4) {
+      if (!formData.fullName.trim()) newErrors.fullName = true;
+      if (!formData.email.trim()) newErrors.email = true;
       if (!formData.reason.trim()) newErrors.reason = true;
+      
       if (Object.keys(newErrors).length > 0) {
         setErrors(newErrors);
         return;
       }
+      if (onSuccess) onSuccess(formData);
       setShowSuccess(true);
       return;
     }
@@ -326,11 +339,25 @@ const Booking = ({ isOpen, onClose, initialSpecialty, user }) => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <div>
                       <label className="block text-sm font-bold text-navy mb-1">Full Name</label>
-                      <input type="text" readOnly value={user?.fullName || 'John Doe'} className="w-full p-3 rounded-xl bg-gray-100 text-gray-500 border border-transparent" />
+                      <input 
+                        type="text" 
+                        value={formData.fullName} 
+                        onChange={(e) => { setFormData({...formData, fullName: e.target.value}); setErrors({...errors, fullName: null}); }}
+                        placeholder="" 
+                        className={`w-full p-3 rounded-xl bg-gray-50 text-navy border ${errors.fullName ? 'border-red-500 bg-red-50' : 'border-gray-200'} focus:border-teal focus:ring-1 focus:ring-teal outline-none transition-all`}
+                      />
+                      {errors.fullName && <p className="text-red-500 text-xs mt-1">Full name is required.</p>}
                     </div>
                     <div>
                       <label className="block text-sm font-bold text-navy mb-1">Email</label>
-                      <input type="text" readOnly value={user?.email || 'john@example.com'} className="w-full p-3 rounded-xl bg-gray-100 text-gray-500 border border-transparent" />
+                      <input 
+                        type="email" 
+                        value={formData.email} 
+                        onChange={(e) => { setFormData({...formData, email: e.target.value}); setErrors({...errors, email: null}); }}
+                        placeholder="" 
+                        className={`w-full p-3 rounded-xl bg-gray-50 text-navy border ${errors.email ? 'border-red-500 bg-red-50' : 'border-gray-200'} focus:border-teal focus:ring-1 focus:ring-teal outline-none transition-all`}
+                      />
+                      {errors.email && <p className="text-red-500 text-xs mt-1">Email is required.</p>}
                     </div>
                   </div>
                   

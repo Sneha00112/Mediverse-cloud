@@ -61,7 +61,7 @@ const AuthModal = ({ isOpen, onClose, onSuccess }) => {
       setErrors({});
       setIsSuccess(true);
       setTimeout(() => {
-        onSuccess(formData);
+        onSuccess({ ...formData, fullName: formData.fullName || 'Sneha' });
       }, 1500);
     } else {
       setErrors({ auth: 'Invalid credentials. Please try again.' });
@@ -82,7 +82,7 @@ const AuthModal = ({ isOpen, onClose, onSuccess }) => {
             <h3 className="text-2xl font-bold text-navy mb-2">
               {tab === 'new' ? 'Account Created!' : 'Welcome Back!'}
             </h3>
-            <p className="text-text-gray">Taking you to booking...</p>
+            <p className="text-text-gray">Taking you to your dashboard...</p>
           </div>
         ) : (
           <>
